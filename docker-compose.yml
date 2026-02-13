@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  pricelists:
+    build: .
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/fastprod_pricelists:/app/pricelists:rw
+    container_name: pricelists
+    restart: always
+    
