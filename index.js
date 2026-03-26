@@ -1,15 +1,30 @@
 const dotenv = require('dotenv');
 
 const { getData } = require('./ftpConnection');
-const { saveFileToLocal, readFileFromLocal } = require('./fileProcess');
-const { readStagingData, saveNormalizedDataToStaging, truncateStagingTable, excecuteProcedureToUpdateMainTables } = require('./dbProcess');
+const { saveFileToLocal, readFileFromLocal, createCSVStringFromData } = require('./fileProcess');
+const { readStagingData, saveNormalizedDataToStaging, truncateStagingTable, excecuteProcedureToUpdateMainTables, getNewTradeAgreements } = require('./dbProcess');
+const { uploadFileToSFTP } = require('./sftpConnections');
 const Normalized = require('./models/normalized');
+const TradeAgreement = require('./models/tradeageement');
+
+const { Readable } = require('stream');
 
 dotenv.config();
 
 const importerId = {
     autoPartner: '61-40648',
     interParts: '61-40448'
+}
+
+const configForGatewaySFTP = {
+    host: process.env.FTP_HOST_GATEWAY,
+    port: process.env.FTP_PORT_GATEWAY,
+    username: process.env.FTP_USER_GATEWAY,
+    password: process.env.FTP_PASSWORD_GATEWAY,
+    folderNameForArticlesStock: process.env.FTP_FOLDERNAME_ARTICLESTOCK_GATEWAY,
+    folderNameForTradeAgreements: process.env.FTP_FOLDERNAME_TRADEAGREEMENTS_GATEWAY,
+    fileNameForArticlesStock: process.env.FTP_FILENAME_ARTICLESTOCK_GATEWAY,
+    fileNameForTradeAgreements: process.env.FTP_FILENAME_TRADEAGREEMENTS_GATEWAY
 }
 
 const generateBatchId = () => {
@@ -104,6 +119,23 @@ const createNormalizedData = async (batchId) => {
     return normalizedData;
 }
 
+const createInMemoryCSVFile = (csvString) => {
+    return Readable.from(csvString);
+}
+
+const createTradeAgreementsCSV = (tradeAgreementsFromDB) => {
+    const tradeAgreements = tradeAgreementsFromDB.map(row => {
+        return new TradeAgreement(
+            row.ID,
+            row.ArticleNr,
+            row.VendorId,
+            row.VendorProductCode,
+            row.NewPurchasePrice
+        );
+    });
+    return createCSVStringFromData(tradeAgreements);
+}
+
 const integrationWorkFlow = async () => {
     
     const batchId = generateBatchId();
@@ -131,6 +163,16 @@ const integrationWorkFlow = async () => {
 
         // Step 5: Run SQL procedure to update main tables
         await excecuteProcedureToUpdateMainTables(process.env.ORUM_DATABASE_URL, process.env.ORUM_DATABASE_NAME, process.env.ORUM_DATABASE_USERNAME, process.env.ORUM_DATABASE_PASSWORD);
+
+        // Step 6: Send Article stock data & new trade agreements (EUR -articles) to Gateway SFTP server
+        
+        // Step 6.1: Get new trade agreements from database
+        // const newTradeAgreements = await getNewTradeAgreements(process.env.ORUM_DATABASE_URL, process.env.ORUM_DATABASE_NAME, process.env.ORUM_DATABASE_USERNAME, process.env.ORUM_DATABASE_PASSWORD);
+        // Step 6.2: Create CSV string for new trade agreements and create in-memory file
+        // const inMemoryTradeAgreementsCSV = createInMemoryCSVFile(createTradeAgreementsCSV(newTradeAgreements));
+        // Step 6.3: Upload new trade agreements CSV to Gateway SFTP server
+        // await uploadFileToSFTP(configForGatewaySFTP, inMemoryTradeAgreementsCSV, `${configForGatewaySFTP.folderNameForTradeAgreements}/${configForGatewaySFTP.fileNameForTradeAgreements}`);
+
 
     } catch (error) {
         console.error('Error in integration workflow:', error);

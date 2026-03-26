@@ -148,11 +148,37 @@ const excecuteProcedureToUpdateMainTables = async (database_url, database_name, 
     }
 }
 
+const getNewTradeAgreements = async (database_url, database_name, database_username, database_password) => {
+    let pool;
+    try {
+        pool = await connection(
+            database_url,
+            database_name,
+            database_username,
+            database_password
+        );
+        // const result = await pool.request().query("SELECT * FROM EuropeanTradeAgreements");
+        const result = await pool.request().query(`SELECT * FROM EuropeanTradeAgreements;`);
+
+        return result.recordset;
+
+    } catch (error) {
+        console.error("Error reading new trade agreements from staging:", error);
+        throw error;
+
+    } finally {
+        if (pool) {
+            await closeConnection(pool);
+        }
+    }
+}
+
 module.exports = {
     connection,
     closeConnection,
     readStagingData,
     saveNormalizedDataToStaging,
     excecuteProcedureToUpdateMainTables,
-    truncateStagingTable
+    truncateStagingTable,
+    getNewTradeAgreements
 };

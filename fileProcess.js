@@ -18,9 +18,18 @@ const readFileFromLocal = (location, fileName) => {
     }
 }
 
+const createCSVStringFromData = (data) => {
+    const header = Object.keys(data[0]).join(';') + '\n';
+    const rows = data.map(row => Object.values(row).join(';')).join('\n');
+    return header + rows;
+}
+
+// const create 
 
 
 module.exports = {
     saveFileToLocal,
-    readFileFromLocal
+    readFileFromLocal,
+    createCSVStringFromData
+
 }

@@ -12,6 +12,7 @@
   "dependencies": {
     "dotenv": "^16.6.1",
     "ftp": "^0.3.10",
-    "mssql": "^12.2.0"
+    "mssql": "^12.2.0",
+    "ssh2-sftp-client": "^12.1.1"
   }
 }
