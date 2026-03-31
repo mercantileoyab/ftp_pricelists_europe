@@ -1,7 +1,14 @@
 const fs = require('fs');
 
 const saveFileToLocal = (location, fileName, data) => {
-    const filePath = `${location}/${fileName}`;
+    const filePath = `.${location}/${fileName}`;
+    const dir = `.${location}`;
+    
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    
     fs.writeFileSync(filePath, data);
     console.log(`File saved successfully at ${filePath}`);
 }

@@ -119,10 +119,6 @@ const createNormalizedData = async (batchId) => {
     return normalizedData;
 }
 
-const createInMemoryCSVFile = (csvString) => {
-    return Readable.from(csvString);
-}
-
 const createTradeAgreementsCSV = (tradeAgreementsFromDB) => {
     const tradeAgreements = tradeAgreementsFromDB.map(row => {
         return new TradeAgreement(
@@ -164,19 +160,28 @@ const integrationWorkFlow = async () => {
         // Step 5: Run SQL procedure to update main tables
         await excecuteProcedureToUpdateMainTables(process.env.ORUM_DATABASE_URL, process.env.ORUM_DATABASE_NAME, process.env.ORUM_DATABASE_USERNAME, process.env.ORUM_DATABASE_PASSWORD);
 
-        // Step 6: Send Article stock data & new trade agreements (EUR -articles) to Gateway SFTP server
-        
-        // Step 6.1: Get new trade agreements from database
-        // const newTradeAgreements = await getNewTradeAgreements(process.env.ORUM_DATABASE_URL, process.env.ORUM_DATABASE_NAME, process.env.ORUM_DATABASE_USERNAME, process.env.ORUM_DATABASE_PASSWORD);
-        // Step 6.2: Create CSV string for new trade agreements and create in-memory file
-        // const inMemoryTradeAgreementsCSV = createInMemoryCSVFile(createTradeAgreementsCSV(newTradeAgreements));
-        // Step 6.3: Upload new trade agreements CSV to Gateway SFTP server
-        // await uploadFileToSFTP(configForGatewaySFTP, inMemoryTradeAgreementsCSV, `${configForGatewaySFTP.folderNameForTradeAgreements}/${configForGatewaySFTP.fileNameForTradeAgreements}`);
-
-
     } catch (error) {
         console.error('Error in integration workflow:', error);
     }
 }
 
-integrationWorkFlow();
+const runTradeAgreementsWorkflow = async () => {
+    // Send Article stock data & new trade agreements (EUR -articles) to Gateway SFTP server
+        
+    // Step 1: Get new trade agreements from database
+    const newTradeAgreements = await getNewTradeAgreements(process.env.ORUM_DATABASE_URL, process.env.ORUM_DATABASE_NAME, process.env.ORUM_DATABASE_USERNAME, process.env.ORUM_DATABASE_PASSWORD);
+    // Step 2: Create CSV string for new trade agreements and save temp to local folder
+    await saveFileToLocal('tradeagreements', 'tradeagreements.csv', createTradeAgreementsCSV(newTradeAgreements));
+    // Step 3: Upload the created CSV file to Gateway SFTP server
+    await uploadFileToSFTP(configForGatewaySFTP, '.tradeagreements/tradeagreements.csv', `${configForGatewaySFTP.folderNameForTradeAgreements}/${configForGatewaySFTP.fileNameForTradeAgreements}`);
+}
+
+const wantedTask = process.argv[2];
+
+switch(wantedTask) {
+    case 'tradeagreements':
+        runTradeAgreementsWorkflow();
+        break;
+    default:
+        integrationWorkFlow();
+}

@@ -157,7 +157,7 @@ const getNewTradeAgreements = async (database_url, database_name, database_usern
             database_username,
             database_password
         );
-        // const result = await pool.request().query("SELECT * FROM EuropeanTradeAgreements");
+        
         const result = await pool.request().query(`SELECT * FROM EuropeanTradeAgreements;`);
 
         return result.recordset;
