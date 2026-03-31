@@ -180,8 +180,14 @@ const wantedTask = process.argv[2];
 
 switch(wantedTask) {
     case 'tradeagreements':
+        console.log('--------------------------------');
+        console.log('Running trade agreements workflow');
+        console.log('--------------------------------');
         runTradeAgreementsWorkflow();
         break;
     default:
+        console.log('--------------------------------');
+        console.log('Running integration workflow');
+        console.log('--------------------------------');
         integrationWorkFlow();
 }
