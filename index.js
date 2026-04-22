@@ -173,7 +173,7 @@ const runTradeAgreementsWorkflow = async () => {
     // Step 2: Create CSV string for new trade agreements and save temp to local folder
     await saveFileToLocal('tradeagreements', 'tradeagreements.csv', createTradeAgreementsCSV(newTradeAgreements));
     // Step 3: Upload the created CSV file to Gateway SFTP server
-    await uploadFileToSFTP(configForGatewaySFTP, '.tradeagreements/tradeagreements.csv', `${configForGatewaySFTP.folderNameForTradeAgreements}/${configForGatewaySFTP.fileNameForTradeAgreements}`);
+    await uploadFileToSFTP(configForGatewaySFTP, './tradeagreements/tradeagreements.csv', `${configForGatewaySFTP.folderNameForTradeAgreements}/${configForGatewaySFTP.fileNameForTradeAgreements}`);
 }
 
 const wantedTask = process.argv[2];

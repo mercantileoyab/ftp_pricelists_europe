@@ -1,8 +1,14 @@
 const fs = require('fs');
+const path = require('path');
+
+const resolvePath = (location, fileName) => {
+    const normalizedLocation = location.replace(/^\.\//, '');
+    return path.resolve(__dirname, normalizedLocation, fileName);
+};
 
 const saveFileToLocal = (location, fileName, data) => {
-    const filePath = `.${location}/${fileName}`;
-    const dir = `.${location}`;
+    const filePath = resolvePath(location, fileName);
+    const dir = path.dirname(filePath);
     
     // Create directory if it doesn't exist
     if (!fs.existsSync(dir)) {
@@ -14,7 +20,7 @@ const saveFileToLocal = (location, fileName, data) => {
 }
 
 const readFileFromLocal = (location, fileName) => {
-    const filePath = `${location}/${fileName}`;
+    const filePath = resolvePath(location, fileName);
     try {
         const data = fs.readFileSync(filePath, 'utf-8');
         console.log(`File read successfully from ${filePath}`);
